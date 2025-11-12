@@ -16,6 +16,23 @@
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@accounts/*": ["src/modules/accounts/*"],
+      "@contacts/*": ["src/modules/contacts/*"],
+      "@facilities/*": ["src/modules/facilities/*"],
+      "@opportunities/*": ["src/modules/opportunities/*"],
+      "@permissions/*": ["src/modules/permissions/*"],
+      "@roles/*": ["src/modules/roles/*"],
+      "@tenants/*": ["src/modules/tenant/*"],
+      "@users/*": ["src/modules/users/*"],
+      "@quotes/*": ["src/modules/quotes/*"],
+
+      "@modules/*": ["src/modules/*"],
+      "@security/*": ["src/security/*"],
+      "@shared/*": ["src/shared/*"],
+
+      "@src/*": ["src/*"]
+    }
   }
 }
