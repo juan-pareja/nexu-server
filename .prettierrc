@@ -15,6 +15,7 @@
   ],
 
   "importOrder": [
+    "^@generated/(.*)$",
     "^@src/(.*)$",
 
     "^@modules/(.*)$",
@@ -24,7 +25,9 @@
 
     "^@accounts/(.*)$",
     "^@contacts/(.*)$",
+    "^@currencies/(.*)$",
     "^@facilities/(.*)$",
+    "^@locations/(.*)$",
     "^@opportunities/(.*)$",
     "^@permissions/(.*)$",
     "^@roles/(.*)$",

@@ -20,11 +20,13 @@
     "paths": {
       "@accounts/*": ["src/modules/accounts/*"],
       "@contacts/*": ["src/modules/contacts/*"],
+      "@currencies/*": ["src/modules/currencies/*"],
       "@facilities/*": ["src/modules/facilities/*"],
+      "@locations/*": ["src/modules/locations/*"],
       "@opportunities/*": ["src/modules/opportunities/*"],
       "@permissions/*": ["src/modules/permissions/*"],
       "@roles/*": ["src/modules/roles/*"],
-      "@tenants/*": ["src/modules/tenant/*"],
+      "@tenants/*": ["src/modules/tenants/*"],
       "@users/*": ["src/modules/users/*"],
       "@quotes/*": ["src/modules/quotes/*"],
 
@@ -32,6 +34,7 @@
       "@security/*": ["src/security/*"],
       "@shared/*": ["src/shared/*"],
 
+      "@generated/*": ["generated/*"],
       "@src/*": ["src/*"]
     }
   }
