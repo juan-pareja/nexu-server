@@ -13,3 +13,672 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Currency {
+  id                  Int           @id @map("id")
+  code                String        @unique @map("code") @db.VarChar(5)
+  name                String        @map("name") @db.VarChar(64)
+  namePlural          String        @map("name_plural") @db.VarChar(64)
+  iconName            String?       @map("icon_name") @db.VarChar(64)
+  symbol              String        @map("symbol") @db.VarChar(8)
+  nativeSymbol        String        @map("native_symbol") @db.VarChar(8)
+  decimals            Int           @map("decimals")
+  rounding            Int           @map("rounding")
+  type                CurrencyType  @map("type")
+  countryAlpha2Codes  Json          @map("country_alpha_2_codes") @db.JsonB
+  amountOpportunities Opportunity[]
+
+  @@map("currencies")
+}
+
+model Region {
+  id               Int         @id @map("id")
+  name             String      @unique @map("name") @db.VarChar(128)
+  nameTranslations Json?       @map("name_translations") @db.JsonB
+  wikidataId       String?     @map("wikidata_id") @db.VarChar(256)
+  countries        Country[]
+  subregions       Subregion[]
+
+  @@map("regions")
+}
+
+model Subregion {
+  id               Int       @id @map("id")
+  name             String    @unique @map("name") @db.VarChar(128)
+  nameTranslations Json?     @map("name_translations") @db.JsonB
+  wikidataId       String?   @map("wikidata_id") @db.VarChar(256)
+  regionId         Int       @map("region_id")
+  region           Region    @relation(fields: [regionId], references: [id])
+  countries        Country[]
+
+  @@index([regionId])
+  @@map("subregions")
+}
+
+model Country {
+  id               Int        @id @map("id")
+  name             String     @map("name") @db.VarChar(128)
+  nativeName       String?    @map("native_name") @db.VarChar(256)
+  nameTranslations Json?      @map("name_translations") @db.JsonB
+  nationality      String?    @map("nationality") @db.VarChar(256)
+  alpha3Code       String     @unique @map("alpha_3_code") @db.VarChar(3)
+  alpha2Code       String     @unique @map("alpha_2_code") @db.VarChar(2)
+  numericCode      String?    @map("numeric_code") @db.VarChar(3)
+  phoneCode        String?    @map("phone_code") @db.VarChar(256)
+  currencyCode     String?    @map("currency_code") @db.VarChar(256)
+  topLevelDomain   String?    @map("top_level_domain") @db.VarChar(256)
+  emoji            String?    @map("emoji") @db.VarChar(192)
+  emojiUnicode     String?    @map("emoji_unicode") @db.VarChar(192)
+  timezones        Json?      @map("timezones") @db.JsonB
+  capitalName      String?    @map("capital_name") @db.VarChar(256)
+  subregionName    String?    @map("subregion_name") @db.VarChar(256)
+  regionName       String?    @map("region_name") @db.VarChar(256)
+  latitude         Decimal?   @map("latitude") @db.Decimal(10, 8)
+  longitude        Decimal?   @map("longitude") @db.Decimal(11, 8)
+  wikidataId       String?    @map("wikidata_id") @db.VarChar(256)
+  regionId         Int?       @map("region_id")
+  region           Region?    @relation(fields: [regionId], references: [id])
+  subregionId      Int?       @map("subregion_id")
+  subregion        Subregion? @relation(fields: [subregionId], references: [id])
+  states           State[]
+  cities           City[]
+  phoneUsers       User[]
+  phoneContacts    Contact[]
+  acccounts        Account[]
+
+  @@index([regionId])
+  @@index([subregionId])
+  @@map("countries")
+}
+
+model State {
+  id                Int      @id @map("id")
+  name              String   @map("name") @db.VarChar(256)
+  type              String?  @map("type") @db.VarChar(192)
+  code              String?  @map("code") @db.VarChar(5)
+  fipsCode          String?  @map("fips_code") @db.VarChar(256)
+  latitude          Decimal? @map("latitude") @db.Decimal(10, 8)
+  longitude         Decimal? @map("longitude") @db.Decimal(11, 8)
+  wikidataId        String?  @map("wikidata_id") @db.VarChar(256)
+  level             Int?     @map("level") @db.SmallInt
+  parentId          Int?     @map("parent_id")
+  native_name       String?  @map("native_name") @db.VarChar(256)
+  countryAlpha2Code String   @map("country_alpha_2_code") @db.VarChar(2)
+  countryId         Int      @map("country_id")
+  country           Country  @relation(fields: [countryId], references: [id])
+  cities            City[]
+
+  @@index([code])
+  @@index([countryId])
+  @@map("states")
+}
+
+model City {
+  id                Int     @id @map("id")
+  name              String  @map("name") @db.VarChar(256)
+  latitude          Decimal @map("latitude") @db.Decimal(10, 8)
+  longitude         Decimal @map("longitude") @db.Decimal(11, 8)
+  wikidataId        String? @map("wikidata_id") @db.VarChar(256)
+  countryAlpha2Code String  @map("country_alpha_2_code") @db.VarChar(2)
+  countryId         Int     @map("country_id")
+  country           Country @relation(fields: [countryId], references: [id])
+  stateCode         String  @map("state_code") @db.VarChar(5)
+  stateId           Int     @map("state_id")
+  state             State   @relation(fields: [stateId], references: [id])
+
+  @@index([countryId])
+  @@index([stateId])
+  @@map("cities")
+}
+
+model Account {
+  id            String        @id @map("id") @db.Uuid
+  name          String        @map("name") @db.VarChar(128)
+  tenantId      String?       @map("tenant_id") @db.Uuid
+  tenant        Tenant?       @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  countryId     Int?          @map("country_id")
+  country       Country?      @relation(fields: [countryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt     DateTime      @map("created_at") @db.Timestamptz(6)
+  createdById   String        @map("created_by_id") @db.Uuid
+  createdBy     User          @relation("created_by", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedAt     DateTime?     @map("updated_at") @db.Timestamptz(6)
+  updatedById   String?       @map("updated_by_id") @db.Uuid
+  updatedBy     User?         @relation("updated_by", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  contacts      Contact[]
+  facilities    Facility[]
+  opportunities Opportunity[]
+  quotes        Quote[]
+  logs          AccountLog[]
+
+  @@index([tenantId])
+  @@index([countryId])
+  @@index([createdById])
+  @@index([updatedById])
+  @@map("accounts")
+}
+
+model AccountLog {
+  id           String    @id @map("id") @db.Uuid
+  action       LogAction @map("action")
+  oldValues    Json?     @map("old_values") @db.JsonB
+  newValues    Json?     @map("new_values") @db.JsonB
+  tenantId     String?   @map("tenant_id") @db.Uuid
+  tenant       Tenant?   @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accountId    String    @map("account_id") @db.Uuid
+  account      Account   @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  executedAt   DateTime  @map("executed_at") @db.Timestamptz(6)
+  executedById String    @map("executed_by_id") @db.Uuid
+  executedBy   User      @relation(fields: [executedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tenantId])
+  @@index([accountId])
+  @@index([executedById])
+  @@map("account_logs")
+}
+
+model Contact {
+  id             String        @id @map("id") @db.Uuid
+  firstName      String        @map("first_name") @db.VarChar(128)
+  lastName       String        @map("last_name") @db.VarChar(128)
+  gender         Gender        @map("gender")
+  email          String        @unique @map("email") @db.VarChar(128)
+  phone          String        @map("phone") @db.VarChar(16)
+  phoneCountryId Int           @map("phone_country_id")
+  phoneCountry   Country       @relation(fields: [phoneCountryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenantId       String?       @map("tenant_id") @db.Uuid
+  tenant         Tenant?       @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accountId      String        @map("account_id") @db.Uuid
+  account        Account       @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  facilityId     String?       @map("facility_id") @db.Uuid
+  facility       Facility?     @relation(fields: [facilityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt      DateTime      @map("created_at") @db.Timestamptz(6)
+  createdById    String        @map("created_by_id") @db.Uuid
+  createdBy      User          @relation("created_by", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedAt      DateTime?     @map("updated_at") @db.Timestamptz(6)
+  updatedById    String?       @map("updated_by_id") @db.Uuid
+  updatedBy      User?         @relation("updated_by", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  opportunities  Opportunity[]
+  quotes         Quote[]
+  logs           ContactLog[]
+
+  @@unique([phone, phoneCountryId])
+  @@index([phoneCountryId])
+  @@index([tenantId])
+  @@index([accountId])
+  @@index([facilityId])
+  @@index([createdById])
+  @@index([updatedById])
+  @@map("contacts")
+}
+
+model ContactLog {
+  id           String    @id @map("id") @db.Uuid
+  action       LogAction @map("action")
+  oldValues    Json?     @map("old_values") @db.JsonB
+  newValues    Json?     @map("new_values") @db.JsonB
+  tenantId     String?   @map("tenant_id") @db.Uuid
+  tenant       Tenant?   @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  contactId    String    @map("contact_id") @db.Uuid
+  contact      Contact   @relation(fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  executedAt   DateTime  @map("executed_at") @db.Timestamptz(6)
+  executedById String    @map("executed_by_id") @db.Uuid
+  executedBy   User      @relation(fields: [executedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tenantId])
+  @@index([contactId])
+  @@index([executedById])
+  @@map("contact_logs")
+}
+
+model Facility {
+  id            String        @id @map("id") @db.Uuid
+  name          String        @map("name") @db.VarChar(128)
+  latitude      Decimal       @map("latitude") @db.Decimal(10, 8)
+  longitude     Decimal       @map("longitude") @db.Decimal(11, 8)
+  tenantId      String?       @map("tenant_id") @db.Uuid
+  tenant        Tenant?       @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accountId     String        @map("account_id") @db.Uuid
+  account       Account       @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt     DateTime      @map("created_at") @db.Timestamptz(6)
+  createdById   String        @map("created_by_id") @db.Uuid
+  createdBy     User          @relation("created_by", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedAt     DateTime?     @map("updated_at") @db.Timestamptz(6)
+  updatedById   String?       @map("updated_by_id") @db.Uuid
+  updatedBy     User?         @relation("updated_by", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  contacts      Contact[]
+  opportunities Opportunity[]
+  logs          FacilityLog[]
+
+  @@index([tenantId])
+  @@index([accountId])
+  @@index([createdById])
+  @@index([updatedById])
+  @@map("facilities")
+}
+
+model FacilityLog {
+  id           String    @id @map("id") @db.Uuid
+  action       LogAction @map("action")
+  oldValues    Json?     @map("old_values") @db.JsonB
+  newValues    Json?     @map("new_values") @db.JsonB
+  tenantId     String?   @map("tenant_id") @db.Uuid
+  tenant       Tenant?   @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  facilityId   String    @map("facility_id") @db.Uuid
+  facility     Facility  @relation(fields: [facilityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  executedAt   DateTime  @map("executed_at") @db.Timestamptz(6)
+  executedById String    @map("executed_by_id") @db.Uuid
+  executedBy   User      @relation(fields: [executedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tenantId])
+  @@index([facilityId])
+  @@index([executedById])
+  @@map("facility_logs")
+}
+
+model Module {
+  id      String           @id @map("id") @db.Uuid
+  name    String           @map("name") @db.VarChar(64)
+  tenants TenantsModules[]
+
+  @@map("modules")
+}
+
+model Opportunity {
+  id                 String               @id @map("id") @db.Uuid
+  title              String               @map("title") @db.VarChar(256)
+  status             OpportunityStatus?   @map("status")
+  forecastDate       DateTime             @map("forecsate_date") @db.Date
+  forecastAmount     Decimal              @map("forecaste_amount") @db.Decimal(16, 2)
+  forecastCurrencyId Int                  @map("forecast_currency_id")
+  forecastCurrency   Currency             @relation(fields: [forecastCurrencyId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ownerId            String               @map("user_id") @db.Uuid
+  owner              User                 @relation("owner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tenantId           String?              @map("tenant_id") @db.Uuid
+  tenant             Tenant?              @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accountId          String               @map("account_id") @db.Uuid
+  account            Account              @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  contactId          String               @map("contact_id") @db.Uuid
+  contact            Contact              @relation(fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  facilityId         String?              @map("facility_id") @db.Uuid
+  facility           Facility?            @relation(fields: [facilityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  closedAt           DateTime?            @map("closed_at") @db.Timestamptz(6)
+  closedById         String?              @map("closed_by_id") @db.Uuid
+  closedBy           User?                @relation("closed_by", fields: [closedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt          DateTime             @map("created_at") @db.Timestamptz(6)
+  createdById        String               @map("created_by_id") @db.Uuid
+  createdBy          User                 @relation("created_by", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedAt          DateTime?            @map("updated_at") @db.Timestamptz(6)
+  updatedById        String?              @map("updated_by_id") @db.Uuid
+  updatedBy          User?                @relation("updated_by", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  quotes             Quote[]
+  comments           OpportunityComment[]
+  logs               OpportunityLog[]
+
+  @@index([forecastCurrencyId])
+  @@index([ownerId])
+  @@index([tenantId])
+  @@index([accountId])
+  @@index([contactId])
+  @@index([facilityId])
+  @@index([closedById])
+  @@index([createdById])
+  @@index([updatedById])
+  @@map("opportunities")
+}
+
+model OpportunityComment {
+  id            String                  @id @map("id") @db.Uuid
+  comment       String                  @map("comment") @db.VarChar(1024)
+  tenantId      String?                 @map("tenant_id") @db.Uuid
+  tenant        Tenant?                 @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  opportunityId String?                 @map("opportunity_id") @db.Uuid
+  opportunity   Opportunity?            @relation(fields: [opportunityId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  userId        String                  @map("user_id") @db.Uuid
+  user          User                    @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt     DateTime                @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime?               @map("updated_at") @db.Timestamptz(6)
+  logs          OpportunityCommentLog[]
+
+  @@index([tenantId])
+  @@index([opportunityId])
+  @@index([userId])
+  @@map("opportunity_comments")
+}
+
+model OpportunityCommentLog {
+  id                   String             @id @map("id") @db.Uuid
+  action               LogAction          @map("action")
+  oldValues            Json?              @map("old_values") @db.JsonB
+  newValues            Json?              @map("new_values") @db.JsonB
+  tenantId             String?            @map("tenant_id") @db.Uuid
+  tenant               Tenant?            @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  opportunityCommentId String             @map("opportunity_comment_id") @db.Uuid
+  opportunityComment   OpportunityComment @relation(fields: [opportunityCommentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  executedAt           DateTime           @map("executed_at") @db.Timestamptz(6)
+  executedById         String             @map("executed_by_id") @db.Uuid
+  executedBy           User               @relation(fields: [executedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tenantId])
+  @@index([opportunityCommentId])
+  @@index([executedById])
+  @@map("opportunity_comment_logs")
+}
+
+model OpportunityLog {
+  id            String      @id @map("id") @db.Uuid
+  action        LogAction   @map("action")
+  oldValues     Json?       @map("old_values") @db.JsonB
+  newValues     Json?       @map("new_values") @db.JsonB
+  tenantId      String?     @map("tenant_id") @db.Uuid
+  tenant        Tenant?     @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  opportunityId String      @map("opportunity_id") @db.Uuid
+  opportunity   Opportunity @relation(fields: [opportunityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  executedAt    DateTime    @map("executed_at") @db.Timestamptz(6)
+  executedById  String      @map("executed_by_id") @db.Uuid
+  executedBy    User        @relation(fields: [executedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tenantId])
+  @@index([opportunityId])
+  @@index([executedById])
+  @@map("opportunity_logs")
+}
+
+model Permission {
+  id        String             @id @map("id") @db.Uuid
+  name      String             @map("name") @db.VarChar(64)
+  action    String             @map("action") @db.VarChar(16)
+  subject   String             @map("subject") @db.VarChar(32)
+  condition Json?              @map("condition") @db.JsonB
+  roles     RolesPermissions[]
+
+  @@map("permissions")
+}
+
+model Role {
+  id          String             @id @map("id") @db.Uuid
+  name        String             @map("name") @db.VarChar(64)
+  tenantId    String?            @map("tenant_id") @db.Uuid
+  tenant      Tenant?            @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt   DateTime           @map("created_at") @db.Timestamptz(6)
+  createdById String             @map("created_by_id") @db.Uuid
+  createdBy   User               @relation("created_by", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedAt   DateTime?          @map("updated_at") @db.Timestamptz(6)
+  updatedById String?            @map("updated_by_id") @db.Uuid
+  updatedBy   User?              @relation("updated_by", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  permissions RolesPermissions[]
+  users       UsersRoles[]
+  logs        RoleLog[]
+
+  @@index([tenantId])
+  @@index([createdById])
+  @@index([updatedById])
+  @@map("roles")
+}
+
+model RoleLog {
+  id           String    @id @map("id") @db.Uuid
+  action       LogAction @map("action")
+  oldValues    Json?     @map("old_values") @db.JsonB
+  newValues    Json?     @map("new_values") @db.JsonB
+  tenantId     String?   @map("tenant_id") @db.Uuid
+  tenant       Tenant?   @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  roleId       String    @map("role_id") @db.Uuid
+  role         Role      @relation(fields: [roleId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  executedAt   DateTime  @map("executed_at") @db.Timestamptz(6)
+  executedById String    @map("executed_by_id") @db.Uuid
+  executedBy   User      @relation(fields: [executedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tenantId])
+  @@index([roleId])
+  @@index([executedById])
+  @@map("role_logs")
+}
+
+model RolesPermissions {
+  roleId       String     @map("role_id") @db.Uuid
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  permissionId String     @map("permission_id") @db.Uuid
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("roles_permissions")
+}
+
+model Tenant {
+  id                     String                  @id @map("id") @db.Uuid
+  name                   String                  @map("name") @db.VarChar(64)
+  createdAt              DateTime                @map("created_at") @db.Timestamptz(6)
+  createdById            String                  @map("created_by_id") @db.Uuid
+  createdBy              User                    @relation("created_by", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedAt              DateTime?               @map("updated_at") @db.Timestamptz(6)
+  updatedById            String?                 @map("updated_by_id") @db.Uuid
+  updatedBy              User?                   @relation("updated_by", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                  User[]                  @relation("tenant")
+  userLogs               UserLog[]
+  accounts               Account[]
+  accountLogs            AccountLog[]
+  contacts               Contact[]
+  contactLogs            ContactLog[]
+  facilities             Facility[]
+  facilityLogs           FacilityLog[]
+  opportunities          Opportunity[]
+  opportunityLogs        OpportunityLog[]
+  opportunityComments    OpportunityComment[]
+  opportunityCommentLogs OpportunityCommentLog[]
+  roles                  Role[]
+  roleLogs               RoleLog[]
+  quotes                 Quote[]
+  quoteLogs              QuoteLog[]
+  modules                TenantsModules[]
+  logs                   TenantLog[]
+
+  @@index([createdById])
+  @@index([updatedById])
+  @@map("tenants")
+}
+
+model TenantLog {
+  id           String    @id @map("id") @db.Uuid
+  action       LogAction @map("action")
+  oldValues    Json?     @map("old_values") @db.JsonB
+  newValues    Json?     @map("new_values") @db.JsonB
+  tenantId     String    @map("tenant_id") @db.Uuid
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  executedAt   DateTime  @map("executed_at") @db.Timestamptz(6)
+  executedById String    @map("executed_by_id") @db.Uuid
+  executedBy   User      @relation(fields: [executedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tenantId])
+  @@index([executedById])
+  @@map("tenant_logs")
+}
+
+model TenantsModules {
+  tenantId String @map("tenants_id") @db.Uuid
+  tenants  Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  moduleId String @map("module_id") @db.Uuid
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([tenantId, moduleId])
+  @@index([tenantId])
+  @@index([moduleId])
+  @@map("tenants_modules")
+}
+
+model User {
+  id                             String                  @id @map("id") @db.Uuid
+  firstName                      String                  @map("first_name") @db.VarChar(64)
+  lastName                       String                  @map("last_name") @db.VarChar(64)
+  birthdate                      DateTime?               @map("birthdate") @db.Timestamptz(6)
+  gender                         Gender?                 @map("gender")
+  username                       String                  @unique @map("username") @db.VarChar(64)
+  password                       String                  @map("password") @db.VarChar(256)
+  email                          String?                 @unique @map("email") @db.VarChar(64)
+  phone                          String?                 @map("phone") @db.VarChar(16)
+  phoneCountryId                 Int?                    @map("phone_country_id")
+  phoneCountry                   Country?                @relation(fields: [phoneCountryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  isActive                       Boolean                 @default(true) @map("is_active")
+  isDeleted                      Boolean                 @default(false) @map("is_deleted")
+  isAdministrator                Boolean                 @default(false) @map("is_administrator")
+  tenantId                       String?                 @map("tenant_id") @db.Uuid
+  tenant                         Tenant?                 @relation("tenant", fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt                      DateTime                @map("created_at") @db.Timestamptz(6)
+  createdById                    String?                 @map("created_by_id") @db.Uuid
+  createdBy                      User?                   @relation("created_by", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  usersCreated                   User[]                  @relation("created_by")
+  updatedAt                      DateTime?               @map("updated_at") @db.Timestamptz(6)
+  updatedById                    String?                 @map("updated_by_id") @db.Uuid
+  updatedBy                      User?                   @relation("updated_by", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  usersUpdated                   User[]                  @relation("updated_by")
+  userLogsExecuted               UserLog[]               @relation("executed_by")
+  logs                           UserLog[]               @relation("user")
+  tenantsCreatedBy               Tenant[]                @relation("created_by")
+  tenantsUpdatedBy               Tenant[]                @relation("updated_by")
+  tenantLogsExecuted             TenantLog[]
+  accountsCreated                Account[]               @relation("created_by")
+  accountsUpdated                Account[]               @relation("updated_by")
+  accountLogsExecuted            AccountLog[]
+  contactsCreated                Contact[]               @relation("created_by")
+  contactsUpdated                Contact[]               @relation("updated_by")
+  contactLogsExecuted            ContactLog[]
+  facilitiesCreated              Facility[]              @relation("created_by")
+  facilitiesUpdated              Facility[]              @relation("updated_by")
+  facilityLogsExecuted           FacilityLog[]
+  opportunitiesOwned             Opportunity[]           @relation("owner")
+  opportunitiesClosed            Opportunity[]           @relation("closed_by")
+  opportunitiesCreated           Opportunity[]           @relation("created_by")
+  opportunitiesUpdated           Opportunity[]           @relation("updated_by")
+  opportunityLogsExecuted        OpportunityLog[]
+  opportunityComments            OpportunityComment[]
+  opportunityCommentLogsExecuted OpportunityCommentLog[]
+  rolesCreated                   Role[]                  @relation("created_by")
+  rolesUpdated                   Role[]                  @relation("updated_by")
+  roleLogsExecuted               RoleLog[]
+  roles                          UsersRoles[]
+  quotesCreated                  Quote[]                 @relation("created_by")
+  quotesUpdated                  Quote[]                 @relation("updated_by")
+  quoteLogsExecuted              QuoteLog[]
+
+  @@unique([phone, phoneCountryId])
+  @@index([phoneCountryId])
+  @@index([tenantId])
+  @@index([createdById])
+  @@index([updatedById])
+  @@map("users")
+}
+
+model UserLog {
+  id           String    @id @map("id") @db.Uuid
+  action       LogAction @map("action")
+  oldValues    Json?     @map("old_values") @db.JsonB
+  newValues    Json?     @map("new_values") @db.JsonB
+  tenantId     String?   @map("tenant_id") @db.Uuid
+  tenant       Tenant?   @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  userId       String    @map("user_id") @db.Uuid
+  user         User      @relation("user", fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  executedAt   DateTime  @map("executed_at") @db.Timestamptz(6)
+  executedById String    @map("executed_by_id") @db.Uuid
+  executedBy   User      @relation("executed_by", fields: [executedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([executedById])
+  @@map("user_logs")
+}
+
+model UsersRoles {
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  roleId String @map("role_id") @db.Uuid
+  role   Role   @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("users_roles")
+}
+
+model Quote {
+  id            String       @id @map("id") @db.Uuid
+  title         String       @db.VarChar(256)
+  tenantId      String       @map("tenant_id") @db.Uuid
+  tenant        Tenant       @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  accountId     String       @map("account_id") @db.Uuid
+  account       Account      @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  contactId     String       @map("contact_id") @db.Uuid
+  contact       Contact      @relation(fields: [contactId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  opportunityId String       @map("opportunity_id") @db.Uuid
+  opportunity   Opportunity? @relation(fields: [opportunityId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  createdAt     DateTime     @map("created_at") @db.Timestamptz(6)
+  createdById   String?      @map("created_by_id") @db.Uuid
+  createdBy     User?        @relation("created_by", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  updatedAt     DateTime?    @map("updated_at") @db.Timestamptz(6)
+  updatedById   String?      @map("updated_by_id") @db.Uuid
+  updatedBy     User?        @relation("updated_by", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  logs          QuoteLog[]
+
+  @@map("quotes")
+}
+
+model QuoteLog {
+  id           String    @id @map("id") @db.Uuid
+  action       LogAction @map("action")
+  oldValues    Json?     @map("old_values") @db.JsonB
+  newValues    Json?     @map("new_values") @db.JsonB
+  tenantId     String?   @map("tenant_id") @db.Uuid
+  tenant       Tenant?   @relation(fields: [tenantId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  quoteId      String    @map("quote_id") @db.Uuid
+  quote        Quote     @relation(fields: [quoteId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  executedAt   DateTime  @map("executed_at") @db.Timestamptz(6)
+  executedById String    @map("executed_by_id") @db.Uuid
+  executedBy   User      @relation(fields: [executedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([tenantId])
+  @@index([quoteId])
+  @@index([executedById])
+  @@map("quote_logs")
+}
+
+enum CurrencyType {
+  fiat
+  crypto
+  metal
+
+  @@map("currency_type")
+}
+
+enum Gender {
+  male
+  female
+  other
+
+  @@map("gender")
+}
+
+enum LogAction {
+  created
+  update
+  delete
+
+  @@map("log_action")
+}
+
+enum OpportunityStatus {
+  open
+  won
+  lost
+
+  @@map("opportunity_status")
+}
+
+enum PermissionAction {
+  manage
+  created
+  read
+  update
+  delete
+
+  @@map("permission_action")
+}
