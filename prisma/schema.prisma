@@ -150,6 +150,7 @@ model Account {
   quotes        Quote[]
   logs          AccountLog[]
 
+  @@unique([id, tenantId])
   @@index([tenantId])
   @@index([countryId])
   @@index([createdById])
@@ -202,6 +203,7 @@ model Contact {
   logs           ContactLog[]
 
   @@unique([phone, phoneCountryId])
+  @@unique([id, tenantId])
   @@index([phoneCountryId])
   @@index([tenantId])
   @@index([accountId])
@@ -249,6 +251,7 @@ model Facility {
   opportunities Opportunity[]
   logs          FacilityLog[]
 
+  @@unique([id, tenantId])
   @@index([tenantId])
   @@index([accountId])
   @@index([createdById])
@@ -314,6 +317,7 @@ model Opportunity {
   comments           OpportunityComment[]
   logs               OpportunityLog[]
 
+  @@unique([id, tenantId])
   @@index([forecastCurrencyId])
   @@index([ownerId])
   @@index([tenantId])
@@ -339,6 +343,7 @@ model OpportunityComment {
   updatedAt     DateTime?               @map("updated_at") @db.Timestamptz(6)
   logs          OpportunityCommentLog[]
 
+  @@unique([id, tenantId, opportunityId])
   @@index([tenantId])
   @@index([opportunityId])
   @@index([userId])
@@ -409,6 +414,7 @@ model Role {
   users       UsersRoles[]
   logs        RoleLog[]
 
+  @@unique([id, tenantId])
   @@index([tenantId])
   @@index([createdById])
   @@index([updatedById])
@@ -449,6 +455,8 @@ model RolesPermissions {
 model Tenant {
   id                     String                  @id @map("id") @db.Uuid
   name                   String                  @map("name") @db.VarChar(64)
+  isActive               Boolean                 @default(true) @map("is_active")
+  isDeleted              Boolean                 @default(false) @map("is_deleted")
   createdAt              DateTime                @map("created_at") @db.Timestamptz(6)
   createdById            String                  @map("created_by_id") @db.Uuid
   createdBy              User                    @relation("created_by", fields: [createdById], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -562,6 +570,7 @@ model User {
   quoteLogsExecuted              QuoteLog[]
 
   @@unique([phone, phoneCountryId])
+  @@unique([id, tenantId])
   @@index([phoneCountryId])
   @@index([tenantId])
   @@index([createdById])
@@ -619,6 +628,13 @@ model Quote {
   updatedBy     User?        @relation("updated_by", fields: [updatedById], references: [id], onDelete: NoAction, onUpdate: NoAction)
   logs          QuoteLog[]
 
+  @@unique([id, tenantId])
+  @@index([tenantId])
+  @@index([accountId])
+  @@index([contactId])
+  @@index([opportunityId])
+  @@index([createdById])
+  @@index([updatedById])
   @@map("quotes")
 }
 
