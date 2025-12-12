@@ -8,7 +8,7 @@ export class Permission {
   action: string;
   subject: string;
   condition: Prisma.JsonValue | null;
-  roles: {
+  roles?: {
     permissionId: string;
     permission?: Permission;
     roleId: string;

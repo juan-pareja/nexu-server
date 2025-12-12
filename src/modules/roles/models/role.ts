@@ -17,13 +17,13 @@ export class Role {
   updatedAt: Date | null;
   updatedById: string | null;
   updatedBy?: User | null;
-  permissions: {
+  permissions?: {
     permissionId: string;
     permission?: Permission;
     roleId: string;
     role?: Role;
   }[];
-  users: {
+  users?: {
     userId: string;
     user?: User;
     roleId: string;

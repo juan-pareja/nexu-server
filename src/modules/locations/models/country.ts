@@ -1,5 +1,7 @@
 import { Prisma } from '@generated/prisma/client';
 
+import { Decimal } from '@prisma/client/runtime/library';
+
 import { Account } from '@accounts/models/account';
 
 import { Contact } from '@contacts/models/contact';
@@ -29,8 +31,8 @@ export class Country {
   capitalName: string | null;
   subregionName: string | null;
   regionName: string | null;
-  latitude: number | null;
-  longitude: number | null;
+  latitude: Decimal | null;
+  longitude: Decimal | null;
   wikidataId: string | null;
   regionId: number | null;
   region?: Region | null;

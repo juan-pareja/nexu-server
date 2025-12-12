@@ -1,5 +1,7 @@
 import { OpportunityStatus } from '@generated/prisma/enums';
 
+import { Decimal } from '@prisma/client/runtime/library';
+
 import { Account } from '@accounts/models/account';
 
 import { Contact } from '@contacts/models/contact';
@@ -22,7 +24,7 @@ export class Opportunity {
   title: string;
   status: OpportunityStatus | null;
   forecastDate: Date;
-  forecastAmount: number;
+  forecastAmount: Decimal;
   forecastCurrencyId: number;
   forecastCurrency?: Currency;
   ownerId: string;

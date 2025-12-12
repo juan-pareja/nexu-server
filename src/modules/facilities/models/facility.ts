@@ -1,3 +1,5 @@
+import { Decimal } from '@prisma/client/runtime/library';
+
 import { Account } from '@accounts/models/account';
 
 import { Contact } from '@contacts/models/contact';
@@ -13,8 +15,8 @@ import { User } from '@users/models/user';
 export class Facility {
   id: string;
   name: string;
-  latitude: number;
-  longitude: number;
+  latitude: Decimal;
+  longitude: Decimal;
   tenantId: string | null;
   tenant?: Tenant | null;
   accountId: string;

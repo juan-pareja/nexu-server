@@ -24,7 +24,7 @@ export class Contact {
   email: string;
   phone: string;
   phoneCountryId: number;
-  phoneCountry: Country;
+  phoneCountry?: Country;
   tenantId: string | null;
   tenant?: Tenant | null;
   accountId: string;

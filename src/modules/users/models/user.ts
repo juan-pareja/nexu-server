@@ -76,7 +76,7 @@ export class User {
   rolesCreated?: Role[];
   rolesUpdated?: Role[];
   roleLogsExecuted?: RoleLog[];
-  roles: {
+  roles?: {
     userId: string;
     user?: User;
     roleId: string;

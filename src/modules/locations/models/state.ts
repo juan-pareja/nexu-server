@@ -1,3 +1,5 @@
+import { Decimal } from '@prisma/client/runtime/library';
+
 import { City } from '@locations/models/city';
 import { Country } from '@locations/models/country';
 
@@ -7,8 +9,8 @@ export class State {
   type: string | null;
   code: string | null;
   fipsCode: string | null;
-  latitude: number;
-  longitude: number;
+  latitude: Decimal;
+  longitude: Decimal;
   wikidataId: string | null;
   level: number | null;
   parentId: number | null;
