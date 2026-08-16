@@ -10,12 +10,16 @@ import { Permission } from '@permissions/models/permission';
 import { User } from '@users/models/user';
 
 import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { Response } from 'express';
 
 @Controller('security')
 export class SecurityController {
-  constructor(private readonly authenticationService: AuthenticationService) {}
+  constructor(
+    private readonly authenticationService: AuthenticationService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @UseGuards(SecurityGuard)
   @Get()
@@ -30,10 +34,11 @@ export class SecurityController {
     };
   }
 
-  @Post()
+  @Post('login')
   async logIn(@Body('credential') credential: AuthenticationCredentialRequest, @Res({ passthrough: true }) response: Response): Promise<AppResponse> {
     const { data: requester }: { data: User } = await this.authenticationService.getRequesterByUserName({
       username: credential.username,
+      withPassword: true,
     });
 
     await this.authenticationService.validatePassword({
@@ -53,11 +58,21 @@ export class SecurityController {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
+      maxAge: this.configService.get('COOKIE_EXPIRATION_TIME', 60 * 60 * 1000),
     });
 
     return {
       success: true,
       requester: requester,
+    };
+  }
+
+  @Post('logout')
+  logOut(@Res({ passthrough: true }) response: Response): AppResponse {
+    response.clearCookie('token');
+
+    return {
+      success: true,
     };
   }
 }

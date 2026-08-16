@@ -2,4 +2,4 @@ import { OpportunityCommentCreateRequest } from '@opportunities/models/opportuni
 
 import { OmitType, PartialType } from '@nestjs/mapped-types';
 
-export class OpportunityCommentUpdateRequest extends PartialType(OmitType(OpportunityCommentCreateRequest, ['tenantId'])) {}
+export class OpportunityCommentUpdateRequest extends PartialType(OmitType(OpportunityCommentCreateRequest, [])) {}

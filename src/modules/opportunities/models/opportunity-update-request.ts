@@ -2,4 +2,4 @@ import { OpportunityCreateRequest } from '@opportunities/models/opportunity-crea
 
 import { OmitType, PartialType } from '@nestjs/mapped-types';
 
-export class OpportunityUpdateRequest extends PartialType(OmitType(OpportunityCreateRequest, ['tenantId'])) {}
+export class OpportunityUpdateRequest extends PartialType(OmitType(OpportunityCreateRequest, [])) {}

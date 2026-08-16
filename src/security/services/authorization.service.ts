@@ -12,7 +12,7 @@ export class AuthorizationService {
   buildAbility({ requester, permissions }: { requester: User; permissions: Permission[] }): { ability: PureAbility } {
     const { can, cannot, build } = new AbilityBuilder(createPrismaAbility);
 
-    if (!requester.isActive && !requester.isDeleted) {
+    if (!requester.isActive || requester.isDeleted) {
       cannot('manage', 'all');
       return {
         ability: build(),
